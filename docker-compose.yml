@@ -21,6 +21,8 @@ services:
       - MALLA_NAME=${MALLA_NAME:-Malla}
       - MALLA_SECRET_KEY=${MALLA_SECRET_KEY:-dev-secret-key-change-in-production}
       - MALLA_DEBUG=${MALLA_DEBUG:-false}
+      - MALLA_LOG_QUERY_TIMES=${MALLA_LOG_QUERY_TIMES:-0}
+      - MALLA_SLOW_QUERY_THRESHOLD_MS=${MALLA_SLOW_QUERY_THRESHOLD_MS:-0}
     volumes:
       - malla_data:/app/data
       # Optional: mount your own config file (uncomment if you have one)

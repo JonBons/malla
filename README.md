@@ -256,9 +256,23 @@ The Gunicorn configuration automatically:
 - `MALLA_MQTT_USERNAME`/`MALLA_MQTT_PASSWORD`: MQTT authentication (optional)
 - `MALLA_WEB_PORT`: Port to expose the web UI (default: 5008)
 - `MALLA_NAME`: Display name in the web interface
+- `MALLA_IMAGE`: Override the Docker image (default: `ghcr.io/zenitram/malla:latest`). Use `:main`, `:sha-<commit>`, or `:debug` to target specific GitHub Actions builds.
+- `MALLA_LOG_QUERY_TIMES` / `MALLA_SLOW_QUERY_THRESHOLD_MS`: Log DB query durations to diagnose slowdowns; see [Configuration Options](#configuration-options).
 
 ### Data Persistence
 Data is automatically stored in a Docker volume (`malla_data`) and persists across container restarts. No manual volume setup is required when using `docker-compose`.
+
+### GitHub Actions image builds
+Images are built and pushed to GitHub Container Registry (GHCR) on push to `main` and via **Actions → Build and Push Docker Images → Run workflow**. Use `MALLA_IMAGE` in `.env` to target a specific build:
+
+| Tag | When |
+|-----|------|
+| `ghcr.io/OWNER/REPO:latest` | Default; updated on each push to `main` |
+| `ghcr.io/OWNER/REPO:main` | Branch `main` |
+| `ghcr.io/OWNER/REPO:sha-<commit>` | Specific commit |
+| `ghcr.io/OWNER/REPO:debug` | Manual run with **Tag debug** checked (for use with query timing) |
+
+To run with query timing for diagnosing DB slowdowns, set `MALLA_LOG_QUERY_TIMES=1` and optionally `MALLA_SLOW_QUERY_THRESHOLD_MS=100` in `.env`, then `docker-compose up -d`. Check `docker-compose logs -f malla-web` for `query_timing` lines.
 
 ## Configuration Options
 
@@ -300,6 +314,8 @@ The following keys are recognised:
 | `mqtt_topic_suffix` | str | `"/+/+/+/#"`                           | MQTT topic suffix pattern.                     | `MALLA_MQTT_TOPIC_SUFFIX` |
 | `default_channel_key` | str | `"1PG7OiApB1nwvP+rz05pAQ=="`         | Default channel key(s) for decryption (base64). Supports comma-separated list of keys - each will be tried in order until successful. | `MALLA_DEFAULT_CHANNEL_KEY` |
 | `data_retention_hours` | int | `0`                                     | Number of hours after which to delete old data (0 = never delete). Automatically cleans up packet_history and node_info records older than specified hours. | `MALLA_DATA_RETENTION_HOURS` |
+| `log_query_times` | bool | `false` | When enabled, log each SQLite query’s duration to app.log (useful for diagnosing DB slowdowns in production). | `MALLA_LOG_QUERY_TIMES` |
+| `slow_query_threshold_ms` | float | `0` | Only log queries slower than this many milliseconds when `log_query_times` is enabled. `0` = log all. | `MALLA_SLOW_QUERY_THRESHOLD_MS` |
 | `gunicorn_workers` | int | `null` | Number of Gunicorn worker processes. `null` means auto-detect based on CPU cores. | `MALLA_GUNICORN_WORKERS` |
 | `gunicorn_threads` | int | `1` | Number of threads per Gunicorn worker. Increase this for better concurrency, especially on I/O bound tasks. | `MALLA_GUNICORN_THREADS` |
 

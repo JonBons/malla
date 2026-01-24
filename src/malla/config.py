@@ -50,6 +50,12 @@ class AppConfig:
     # Number of hours after which to delete old data (0 = never delete)
     data_retention_hours: int = 0
 
+    # Query timing (for diagnosing DB slowdowns in production)
+    # When true, log duration of each SQLite query. Use MALLA_LOG_QUERY_TIMES=1
+    log_query_times: bool = False
+    # Only log queries slower than this many ms (0 = log all when log_query_times enabled)
+    slow_query_threshold_ms: float = 0.0
+
     # OpenTelemetry settings
     otlp_endpoint: str | None = None
 

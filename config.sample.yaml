@@ -52,6 +52,10 @@ debug: false
 # Number of hours after which to delete old data (0 = never delete)
 # data_retention_hours: 0
 
+# Query timing – log DB query durations to diagnose slowdowns (app.log)
+# log_query_times: false
+# slow_query_threshold_ms: 0   # 0 = log all; >0 = log only queries slower than this (ms)
+
 # OpenTelemetry settings
 # Endpoint for sending traces (e.g. "http://localhost:4317")
 # otlp_endpoint: ""

@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      tag_debug:
+        description: "Also tag image as :debug"
+        required: false
+        default: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -45,6 +51,7 @@ jobs:
             type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-
+            type=raw,value=debug,enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_debug }}
 
       - name: Build and push Docker image
         id: build

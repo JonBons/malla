@@ -2,22 +2,31 @@
 Database connection management for Meshtastic Mesh Health Web UI.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import sqlite3
+from typing import TYPE_CHECKING
 
 # Prefer configuration loader over environment variables
 from malla.config import get_config
 
+if TYPE_CHECKING:
+    from malla.database.query_timing import TimingConnectionWrapper
+
 logger = logging.getLogger(__name__)
 
 
-def get_db_connection() -> sqlite3.Connection:
+def get_db_connection() -> sqlite3.Connection | TimingConnectionWrapper:
     """
     Get a connection to the SQLite database with proper concurrency configuration.
 
+    When ``log_query_times`` is enabled, returns a timing wrapper; otherwise a plain
+    ``sqlite3.Connection``. Both support ``cursor()``, ``close()``, ``commit()``, etc.
+
     Returns:
-        sqlite3.Connection: Database connection with row factory set and WAL mode enabled
+        Database connection (possibly wrapped for query timing) with row factory and WAL.
     """
     # Resolve DB path:
     # 1. Explicit override via `MALLA_DATABASE_FILE` env-var (handy for scripts)
@@ -63,6 +72,11 @@ def get_db_connection() -> sqlite3.Connection:
         except Exception as e:
             logger.warning(f"Schema migration check failed: {e}")
 
+        cfg = get_config()
+        if cfg.log_query_times:
+            from malla.database.query_timing import TimingConnectionWrapper
+
+            return TimingConnectionWrapper(conn, cfg.slow_query_threshold_ms)
         return conn
     except Exception as e:
         logger.error(f"Failed to connect to database: {e}")
